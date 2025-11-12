@@ -6,6 +6,7 @@ import {
   disconnectDatabase,
   checkDatabaseHealth,
 } from "./config/database.js";
+import authRoutes from "./routes/authRoutes.js";
 
 // dotenv config
 dotenv.config();
@@ -43,6 +44,9 @@ app.get("/api/health", async (req, res) => {
     database: dbHealth ? "connected" : "disconnected",
   });
 });
+
+// API routes
+app.use("/api/auth", authRoutes);
 
 // 404 handler
 app.use((req, res) => {
