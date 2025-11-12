@@ -1,15 +1,25 @@
 import { z } from "zod";
 
+// Reusable email schema
+const emailSchema = z
+  .string()
+  .email("Invalid email format")
+  .toLowerCase()
+  .trim();
+
+// Reusable password schema
+const passwordSchema = z
+  .string()
+  .min(6, "Password must be at least 6 characters")
+  .max(100, "Password too long");
+
 /**
  * Validation schemas for authentication
  */
 export const authSchemas = {
   signup: z.object({
-    email: z.string().email("Invalid email format").toLowerCase().trim(),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .max(100, "Password too long"),
+    email: emailSchema,
+    password: passwordSchema,
     name: z
       .string()
       .min(2, "Name must be at least 2 characters")
@@ -18,7 +28,7 @@ export const authSchemas = {
   }),
 
   login: z.object({
-    email: z.string().email("Invalid email format").toLowerCase().trim(),
+    email: emailSchema,
     password: z.string().min(1, "Password is required"),
   }),
 };

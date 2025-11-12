@@ -2,17 +2,22 @@ import prisma from "../config/database.js";
 import { verifyToken } from "../utils/auth.js";
 import { sendError } from "../utils/response.js";
 
+// User fields to select (reusable constant)
+const USER_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+};
+
 /**
  * Authentication middleware - Verifies JWT token and attaches user to request
  * Usage: Add to routes that require authentication
  */
 export const authenticate = async (req, res, next) => {
   try {
-    // Extract token from Authorization header (format: "Bearer TOKEN")
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : null;
+    // Extract token from Authorization header (optimized single-line extraction)
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return sendError(
@@ -22,29 +27,24 @@ export const authenticate = async (req, res, next) => {
       );
     }
 
-    // Verify token
+    // Verify token and decode
     const decoded = verifyToken(token);
 
-    // Fetch user from database
+    // Fetch user from database (optimized query with select)
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-      },
+      select: USER_SELECT,
     });
 
     if (!user) {
       return sendError(res, 401, "User not found. Invalid token.");
     }
 
-    // Attach user to request object for use in controllers
+    // Attach user to request object
     req.user = user;
     next();
   } catch (error) {
-    // Handle different JWT errors
+    // Handle JWT-specific errors efficiently
     if (error.name === "JsonWebTokenError") {
       return sendError(res, 401, "Invalid token.");
     }
